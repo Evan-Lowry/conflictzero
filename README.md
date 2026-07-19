@@ -115,7 +115,6 @@ Generated proving keys are intentionally ignored because they add tens of megaby
 - `docs/threat-model.md` — trust boundaries, mitigations, and explicit non-claims
 - `docs/contract-architecture.md` — exact proof statement and contract state transitions
 - `docs/core-wire-format.md` — deterministic external digest format
-- `docs/demo-script.md` — five-minute judge walkthrough
 
 ## Current status
 

@@ -15,3 +15,6 @@ contract/src/managed/**/keys/*.prover
 conflictzero-live-state/
 packages/midnight-live/midnight-level-db/
 *midnight-live-input*.json
+
+# Private recording material; keep the judge script local.
+docs/demo-script.md
