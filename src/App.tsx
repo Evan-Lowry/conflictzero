@@ -170,12 +170,38 @@ function Dashboard({ registry, receipt, navigate }: { registry: RegistryEntry[];
   return (
     <div className="workspace">
       <section className="workspace-hero">
-        <div>
-          <div className="overline"><span /> FIRM PROOF CONSOLE</div>
-          <h1>Good evening, Avery.</h1>
-          <p>Your private registry is sealed and ready for a new clearance proof.</p>
+        <div className="engagement-story">
+          <div className="overline"><span /> NEW ENGAGEMENT · READY TO CHECK</div>
+          <div className="story-owner"><i>A</i><span><small>ASSIGNED TO</small><b>Avery · Conflicts counsel</b></span></div>
+          <h1>Orchid Capital<br /><em>is waiting.</em></h1>
+          <p>Before the firm says yes, Avery needs to know whether anyone involved is already protected—without exposing the client list.</p>
+          <div className="engagement-facts">
+            <span><small>MATTER</small><b>Commercial advisory</b></span>
+            <span><small>OTHER PARTY</small><b>Apex Materials</b></span>
+          </div>
         </div>
-        <button className="primary glow" onClick={() => navigate('new-check')}>Run private check <span>→</span></button>
+
+        <aside className="readiness-card" aria-label="ConflictZero proof readiness">
+          <div className="readiness-head"><span>CONFLICTZERO / PRE-FLIGHT</span><b><i /> READY</b></div>
+          <div className="readiness-step">
+            <span className="readiness-icon">⌑</span>
+            <div><small>PRIVATE RELATIONSHIPS</small><b>{registry.length} organizations sealed</b></div>
+            <em>HIDDEN</em>
+          </div>
+          <div className="readiness-link"><span /><small>STAYS PRIVATE</small><span /></div>
+          <div className="readiness-step circuit-ready">
+            <span className="readiness-icon"><i /><i /><b>C0</b></span>
+            <div><small>CONFLICTZERO CIRCUIT</small><b>32 comparisons ready</b></div>
+            <em>LOCAL</em>
+          </div>
+          <div className="readiness-link public-link"><span /><small>ONLY IF CLEAR</small><span /></div>
+          <div className="readiness-step public-ready">
+            <span className="readiness-icon">✓</span>
+            <div><small>PUBLIC OUTPUT</small><b>0 names disclosed</b></div>
+            <em>PROOF</em>
+          </div>
+          <button className="primary glow readiness-cta" onClick={() => navigate('new-check')}>Check this engagement <span>→</span></button>
+        </aside>
       </section>
 
       <section className="metrics">
