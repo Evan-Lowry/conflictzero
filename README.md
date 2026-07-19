@@ -33,6 +33,8 @@ A conflict is a local stop condition. It creates no public receipt and does not 
 
 The browser experience is explicitly labelled as a deterministic demo provider. The repository also includes the compiled Compact contract and the adapter boundary needed for a real Midnight provider; simulated results are never presented as live network transactions.
 
+For technical judging, `packages/midnight-live` adds a separate real Midnight.js execution harness. It starts the official-compatible local node, indexer, and proof server, deploys the generated ConflictZero contract, generates a real zero-knowledge proof, submits `proveClear`, and prints only the resulting public transaction identifiers. The reliable hosted browser flow remains explicitly deterministic so a temporary wallet or network outage cannot break the two-minute demo.
+
 ## Architecture
 
 ```text
@@ -71,9 +73,23 @@ Then open the local URL printed by Vite.
 ```bash
 npm run build
 npm test
+npm run test:live-types
 ```
 
 The 20 tests cover normalization, fixed-size padding, exact-ID conflicts, freshness, tamper binding, replay domains, a committed golden vector, contract protocol invariants, exact Compact encoding, cross-deployment rejection, and receipt-only-on-success behavior.
+
+### Run a real Midnight proof locally
+
+Requirements: Docker Desktop plus the package-local dependencies.
+
+```bash
+npm --prefix packages/midnight-live install
+npm run midnight:up
+npm run midnight:prove
+npm run midnight:down
+```
+
+Local mode creates a fresh clean witness in memory and uses only the official local genesis seed. It does not write private witness data to the repository. Preview-network execution is also supported, but deliberately requires an explicit funded wallet input; see `packages/midnight-live/README.md`.
 
 ### Compile the Compact contract
 
@@ -92,8 +108,10 @@ Generated proving keys are intentionally ignored because they add tens of megaby
 - `src/` — responsive React demo and service boundary
 - `packages/core/` — browser-compatible deterministic privacy core and golden vector
 - `packages/midnight-adapter/` — generated-binding bridge and deterministic provider double
+- `packages/midnight-live/` — real Midnight.js deploy-and-prove harness for local devnet or Preview
 - `contract/` — Compact source, generated compiler bindings, and protocol model tests
 - `docs/BUILD_PLAN.md` — implementation plan and release gates
+- `docs/LIVE_PROOF_RECEIPT.md` — latest verified local Midnight deploy-and-proof receipt
 - `docs/threat-model.md` — trust boundaries, mitigations, and explicit non-claims
 - `docs/contract-architecture.md` — exact proof statement and contract state transitions
 - `docs/core-wire-format.md` — deterministic external digest format
@@ -107,7 +125,8 @@ Generated proving keys are intentionally ignored because they add tens of megaby
 - Browser execution of the generated Compact fingerprints and typed commitments through the official runtime
 - Replay-, version-, deployment-, and engagement-bound receipt design
 - Deterministic provider fallback for reliable judging
-- Runtime Midnight wallet/node submission remains an integration boundary and is not misrepresented as complete
+- Real Midnight.js deploy-and-`proveClear` harness with local node, indexer, proof server, wallet, and witness storage
+- Hosted browser wallet submission remains an optional integration boundary and is not misrepresented as complete
 
 ## Security notes
 

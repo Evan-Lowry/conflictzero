@@ -10,7 +10,11 @@
     "test:core": "node --experimental-strip-types --test packages/core/test/core.test.ts packages/core/test/golden-vector.test.ts",
     "test:contract": "node --test contract/test/protocol-model.test.mjs",
     "test:adapter": "node --test packages/midnight-adapter/test/adapter.test.ts",
-    "test": "npm run test:core && npm run test:contract && npm run test:adapter"
+    "test:live-types": "npm --prefix packages/midnight-live run check",
+    "test": "npm run test:core && npm run test:contract && npm run test:adapter",
+    "midnight:up": "npm --prefix packages/midnight-live run devnet:up",
+    "midnight:down": "npm --prefix packages/midnight-live run devnet:down",
+    "midnight:prove": "npm --prefix packages/midnight-live run deploy-and-prove"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "0.16.0",

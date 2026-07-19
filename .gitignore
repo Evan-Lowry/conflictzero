@@ -8,3 +8,10 @@ dist/
 # Compact proving keys are reproducible and large; keep source, verifier data,
 # generated bindings, and circuit IR in version control instead.
 contract/src/managed/**/keys/*.prover
+
+# Live Midnight harness state and secret inputs.
+.midnight-state.json
+.midnight-wallet-state/
+conflictzero-live-state/
+packages/midnight-live/midnight-level-db/
+*midnight-live-input*.json
