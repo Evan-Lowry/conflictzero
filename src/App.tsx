@@ -1,0 +1,77 @@
+import { FormEvent, useMemo, useState } from 'react'
+import { demoConflictService } from './service'
+import type { Engagement, Receipt, RegistryEntry } from './types'
+
+type View = 'home' | 'dashboard' | 'registry' | 'new-check' | 'receipt'
+
+const seededRegistry: RegistryEntry[] = [
+  { id: 'r1', name: 'Northstar Group', role: 'Active client', added: 'Jun 03, 2026' },
+  { id: 'r2', name: 'Halcyon Health', role: 'Former client', added: 'May 21, 2026' },
+  { id: 'r3', name: 'Palisade Ventures', role: 'Active client', added: 'Apr 12, 2026' },
+  { id: 'r4', name: 'Cedar & Finch', role: 'Counterparty', added: 'Mar 29, 2026' },
+]
+
+const Icon = ({ name }: { name: string }) => <span className={`icon icon-${name}`} aria-hidden="true" />
+const Hash = ({ children }: { children: string }) => <code>{children}</code>
+
+function App() {
+  const [view, setView] = useState<View>('home')
+  const [registry, setRegistry] = useState(seededRegistry)
+  const [receipt, setReceipt] = useState<Receipt | null>(null)
+  const [demo, setDemo] = useState(true)
+
+  const navigate = (next: View) => { setView(next); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const launchDemo = () => { setDemo(true); navigate('dashboard') }
+
+  return <div className="app-shell">
+    <header className="topbar">
+      <button className="brand" onClick={() => navigate('home')} aria-label="ConflictZero home"><span className="brand-mark">C<span>0</span></span><span>conflict<span>zero</span></span></button>
+      <nav aria-label="Primary navigation"><button onClick={() => navigate('dashboard')}>Workspace</button><button onClick={() => navigate('receipt')}>Verify receipt</button></nav>
+      <button className="firm-pill" onClick={() => navigate('dashboard')}><span className="firm-dot" />Hartwell &amp; Vale <Icon name="chevron" /></button>
+    </header>
+    {demo && <div className="demo-banner"><span><Icon name="flask" /> Demo environment — data and proof activity are simulated locally.</span><button onClick={() => setDemo(false)} aria-label="Dismiss demo banner">×</button></div>}
+    <main>
+      {view === 'home' && <Home onLaunch={launchDemo} onVerify={() => navigate('receipt')} />}
+      {view === 'dashboard' && <Dashboard registry={registry} receipt={receipt} onNavigate={navigate} />}
+      {view === 'registry' && <Registry registry={registry} setRegistry={setRegistry} onBack={() => navigate('dashboard')} />}
+      {view === 'new-check' && <NewCheck registry={registry} onReceipt={(r) => { setReceipt(r); navigate('dashboard') }} onBack={() => navigate('dashboard')} />}
+      {view === 'receipt' && <ReceiptVerifier initial={receipt} />}
+    </main>
+    <footer><span>© 2026 ConflictZero</span><span>Built for Midnight Hackathon</span><span>Privacy by design</span></footer>
+  </div>
+}
+
+function Home({ onLaunch, onVerify }: { onLaunch: () => void; onVerify: () => void }) {
+  return <>
+    <section className="hero"><div className="eyebrow"><span /> Private conflict clearance</div><h1>Check conflicts.<br /><em>Protect confidence.</em></h1><p>ConflictZero lets professional firms document that a new engagement passed conflict checks—without disclosing the client relationships behind the decision.</p><div className="hero-actions"><button className="primary" onClick={onLaunch}>Launch workspace <Icon name="arrow" /></button><button className="text-button" onClick={onVerify}>Verify a receipt <Icon name="arrow" /></button></div><div className="hero-proof"><div className="proof-node"><span className="node-icon lock" /><b>Private registry</b><small>never leaves your control</small></div><span className="proof-line" /><div className="proof-node"><span className="node-icon proof" /><b>Zero-knowledge proof</b><small>validates the check</small></div><span className="proof-line" /><div className="proof-node"><span className="node-icon receipt" /><b>Public receipt</b><small>verifiable, not revealing</small></div></div></section>
+    <section className="trust-grid"><article><span className="number">01</span><h2>Commit privately</h2><p>Maintain an encrypted client registry. Only a cryptographic fingerprint is used for verification.</p></article><article><span className="number">02</span><h2>Check confidently</h2><p>Evaluate parties against your private policies, with a tamper-evident record of the decision.</p></article><article><span className="number">03</span><h2>Prove selectively</h2><p>Share a clearance receipt—not client names, matters, or sensitive relationships.</p></article></section>
+  </>
+}
+
+function Dashboard({ registry, receipt, onNavigate }: { registry: RegistryEntry[]; receipt: Receipt | null; onNavigate: (v: View) => void }) {
+  return <div className="workspace"><div className="page-heading"><div><div className="eyebrow"><span /> Firm workspace</div><h1>Good afternoon, Avery.</h1><p>Your conflict-control workspace is up to date.</p></div><button className="primary" onClick={() => onNavigate('new-check')}>New conflict check <Icon name="plus" /></button></div><section className="metrics"><article><span className="metric-label">Registry health</span><strong>Protected</strong><small><span className="status-dot" /> Commitment ready · v1</small></article><article><span className="metric-label">Private entities</span><strong>{registry.length}</strong><small>Last updated Jun 03, 2026</small></article><article><span className="metric-label">Clearances this month</span><strong>12</strong><small>100% verification rate</small></article></section><div className="dashboard-grid"><section className="panel registry-preview"><div className="panel-head"><div><span className="eyebrow"><span /> Registry</span><h2>Private relationship registry</h2></div><button className="link" onClick={() => onNavigate('registry')}>Manage <Icon name="arrow" /></button></div><p>Entities are maintained privately. No names are published in a clearance receipt.</p><div className="commitment"><span className="node-icon lock" /><div><small>COMPACT COMMITMENT · VERSION 1</small><Hash>{receipt?.registryCommitment ?? 'Generated privately on first check'}</Hash></div><span className="verify-check">✓</span></div></section><section className="panel activity"><div className="panel-head"><div><span className="eyebrow"><span /> Activity</span><h2>Recent checks</h2></div></div>{receipt ? <div className={`activity-row ${receipt.status}`}><span className="status-icon">{receipt.status === 'cleared' ? '✓' : '!'}</span><div><b>{receipt.status === 'cleared' ? 'Engagement cleared' : 'Review required'}</b><small>{receipt.id} · just now</small></div><span className="tag">{receipt.status}</span></div> : <div className="empty-state"><span className="empty-icon">⌁</span><b>No checks in this demo session</b><small>Start with a new engagement to create a receipt.</small></div>}</section></div><section className="callout"><span className="callout-mark">?</span><div><b>A clearance is evidence, not disclosure.</b><p>Receipts bind an engagement fingerprint to a registry version without exposing the private registry.</p></div><button className="link" onClick={() => onNavigate('receipt')}>Verify a receipt <Icon name="arrow" /></button></section></div>
+}
+
+function Registry({ registry, setRegistry, onBack }: { registry: RegistryEntry[]; setRegistry: (r: RegistryEntry[]) => void; onBack: () => void }) {
+  const [name, setName] = useState(''); const [role, setRole] = useState('Active client')
+  const atCapacity = registry.length >= 8
+  const add = (e: FormEvent) => { e.preventDefault(); if (!name.trim() || atCapacity) return; setRegistry([...registry, { id: crypto.randomUUID(), name: name.trim(), role, added: 'Just now' }]); setName('') }
+  return <div className="workspace"><button className="back" onClick={onBack}>← Workspace</button><div className="page-heading compact"><div><div className="eyebrow"><span /> Private registry</div><h1>Relationship registry</h1><p>Stored privately for this demo. The public system receives only a commitment.</p></div></div><div className="registry-layout"><section className="panel registry-table"><div className="panel-head"><div><h2>Protected entities <span>{registry.length} / 8</span></h2><p>Prepared for registry commitment v1</p></div></div><div className="table-labels"><span>ENTITY</span><span>RELATIONSHIP</span><span>ADDED</span></div>{registry.map(entry => <div className="entity-row" key={entry.id}><span className="entity-avatar">{entry.name.slice(0, 1)}</span><b>{entry.name}</b><span>{entry.role}</span><small>{entry.added}</small><button aria-label={`Remove ${entry.name}`} onClick={() => setRegistry(registry.filter(item => item.id !== entry.id))}>×</button></div>)}</section><aside className="panel add-entity"><span className="node-icon lock" /><h2>Add protected entity</h2><p>This value stays in your private workspace. The prototype circuit supports eight entries.</p><form onSubmit={add}><label>Organization name<input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Meridian Holdings" disabled={atCapacity} /></label><label>Relationship<select value={role} onChange={e => setRole(e.target.value)} disabled={atCapacity}><option>Active client</option><option>Former client</option><option>Counterparty</option><option>Restricted party</option></select></label><button className="primary" type="submit" disabled={atCapacity}>{atCapacity ? 'Capacity reached' : 'Add to registry'} <Icon name="plus" /></button></form></aside></div></div>
+}
+
+function NewCheck({ registry, onReceipt, onBack }: { registry: RegistryEntry[]; onReceipt: (r: Receipt) => void; onBack: () => void }) {
+  const [company, setCompany] = useState('Orchid Capital'); const [matter, setMatter] = useState('Commercial advisory'); const [parties, setParties] = useState('Apex Materials'); const [state, setState] = useState<'editing' | 'proving' | 'private-review'>('editing')
+  const [error, setError] = useState('')
+  const submit = async (e: FormEvent) => { e.preventDefault(); setError(''); const entityList = parties.split(',').map(s => s.trim()).filter(Boolean); if (entityList.length > 3) { setError('This prototype supports one prospective client plus up to three involved organizations.'); return } setState('proving'); const engagement: Engagement = { id: crypto.randomUUID(), company, matter, parties: entityList, createdAt: new Date().toISOString() }; try { const result = await demoConflictService.check(engagement, registry); if (result.status === 'cleared') onReceipt(result); else setState('private-review') } catch (cause) { setError(cause instanceof Error ? cause.message : 'The private check could not be completed.'); setState('editing') } }
+  if (state === 'proving') return <div className="proof-progress"><div className="progress-card"><span className="spinner" /><div className="eyebrow"><span /> Preparing private check</div><h1>Generating clearance evidence</h1><p>Your party list is being evaluated through the deterministic provider using contract-generated Compact fingerprints and commitments.</p><div className="progress-steps"><span className="complete">✓ Normalize private inputs</span><span className="active">◌ Constructing proof inputs</span><span>○ Issuing receipt</span></div></div></div>
+  if (state === 'private-review') return <div className="proof-progress"><div className="progress-card private-review"><span className="review-symbol">!</span><div className="eyebrow"><span /> Private review required</div><h1>This engagement was not cleared automatically.</h1><p>A potential relationship requires review within your firm. No client name, matched relationship, or public receipt has been created.</p><div className="private-note">This local demo result is not stored on-chain or available through receipt verification.</div><button className="primary" onClick={onBack}>Return to workspace <Icon name="arrow" /></button></div></div>
+  return <div className="workspace"><button className="back" onClick={onBack}>← Workspace</button><div className="check-layout"><section><div className="eyebrow"><span /> New engagement</div><h1>Run a conflict check</h1><p>Enter the prospective client and all known involved organizations.</p><form className="check-form" onSubmit={submit}>{error && <div className="form-error" role="alert">{error}</div>}<label>Prospective client<input required value={company} onChange={e => setCompany(e.target.value)} /></label><label>Matter description<input required value={matter} onChange={e => setMatter(e.target.value)} /></label><label>Involved organizations <small>Separate up to three entities with commas</small><textarea required value={parties} onChange={e => setParties(e.target.value)} /></label><button className="primary" type="submit">Generate clearance evidence <Icon name="arrow" /></button></form></section><aside className="check-aside"><div className="aside-card"><span className="node-icon lock" /><h3>What stays private</h3><ul><li>Your relationship registry</li><li>Matching entity information</li><li>Internal policy details</li></ul></div><div className="aside-card subtle"><span className="eyebrow"><span /> Demo shortcut</span><p>Try <button onClick={() => setParties('Northstar Group')}>Northstar Group</button> to see a review-required result.</p></div></aside></div></div>
+}
+
+function ReceiptVerifier({ initial }: { initial: Receipt | null }) {
+  const [id, setId] = useState(initial?.id ?? ''); const [result, setResult] = useState<Receipt | null>(initial); const [searched, setSearched] = useState(false)
+  const verify = async (e: FormEvent) => { e.preventDefault(); setSearched(true); setResult(await demoConflictService.verify(id)) }
+  return <div className="verify-page"><div className="eyebrow"><span /> Independent verification</div><h1>Verify a clearance receipt</h1><p>Check a receipt’s integrity without accessing the firm’s confidential client registry.</p><form className="verify-form" onSubmit={verify}><input value={id} onChange={e => setId(e.target.value)} placeholder="CZ-XXXXXX" aria-label="Receipt identifier" /><button className="primary">Verify receipt <Icon name="arrow" /></button></form>{searched && !result && <div className="verify-result missing"><span>!</span><div><b>Receipt not found in this demo session</b><p>Run a conflict check first, then verify its generated identifier here.</p></div></div>}{result && <div className={`verify-result ${result.status}`}><span>{result.status === 'cleared' ? '✓' : '!'}</span><div><div className="result-top"><b>{result.status === 'cleared' ? 'Clearance verified' : 'Review required'}</b><span className="tag">{result.status}</span></div><p>{result.status === 'cleared' ? 'This engagement passed the private registry check.' : 'This engagement was not cleared automatically. No matching relationship has been disclosed.'}</p><dl><div><dt>Receipt</dt><dd>{result.id}</dd></div><div><dt>Registry version</dt><dd>v{result.registryVersion}</dd></div><div><dt>Engagement fingerprint</dt><dd><Hash>{result.engagementHash}</Hash></dd></div>{result.proposalCommitment && <div><dt>Proposal commitment</dt><dd><Hash>{result.proposalCommitment}</Hash></dd></div>}{result.transactionId && <div><dt>Provider transaction</dt><dd>{result.transactionId}</dd></div>}<div><dt>Timestamp</dt><dd>{new Date(result.timestamp).toLocaleString()}</dd></div></dl><small className="disclaimer">Offline deterministic provider · Compact-generated primitives · no live network transaction.</small></div></div>}</div>
+}
+
+export default App

@@ -1,0 +1,56 @@
+{
+  "format": "conflictzero-clearance-v1-golden-vector",
+  "salts": {
+    "registry": "vector-registry-salt-6f6b85d0",
+    "engagement": "vector-engagement-salt-2d52d8a1",
+    "statement": "vector-statement-salt-a4e187c3"
+  },
+  "firmId": "firm-vector-001",
+  "registry": {
+    "registryId": "registry-vector-001",
+    "maxEntries": 4,
+    "normalizedOrganizationIds": ["id:ca-on-88421", "name:asterion-dynamics"],
+    "leaves": [
+      "a58f20d7d6023c7f0f14c8949a9b60d2edc55a15d6b679bb18f9b501a560b7af",
+      "bdf03294e62bab3e96a5fdf6b21b128de231c4ceff876db62f85b8a729a63455",
+      "1fa4d09b41c6d71b9b7924848ba12f84f2540428912efcf15e7599c3ed7b3b71",
+      "a263554d55a40fb65a1206c42aad420bf61c0c0a858c00e26966d46ba70f918a"
+    ],
+    "metadata": {
+      "protocol": "conflictzero/v1",
+      "registryId": "registry-vector-001",
+      "version": "v1-5424c3ea3852a57f",
+      "commitment": "5424c3ea3852a57f01127fa9492206a37d73eefff80212e3e6f7a1b8654a68c9",
+      "maxEntries": 4,
+      "entityCount": 2
+    }
+  },
+  "engagements": {
+    "clean": {
+      "id": "ENG-VECTOR-CLEAN-001",
+      "organizationIds": ["name:horizon-aeronautics"],
+      "canonicalPayload": "{\"engagementId\":\"ENG-VECTOR-CLEAN-001\",\"organizationIds\":[\"name:horizon-aeronautics\"]}",
+      "hash": "55280f134eb7b083abc21e6a13b45e5259f4f3c771d5ed55a634219395d51caf",
+      "expectedHasConflict": false
+    },
+    "conflict": {
+      "id": "ENG-VECTOR-CONFLICT-001",
+      "organizationIds": ["id:ca-on-88421"],
+      "canonicalPayload": "{\"engagementId\":\"ENG-VECTOR-CONFLICT-001\",\"organizationIds\":[\"id:ca-on-88421\"]}",
+      "hash": "fe94c5ba5a00963e3c412c35322cf1f5d0622972955d9ccc89099f3dc959d0eb",
+      "expectedHasConflict": true
+    }
+  },
+  "checkNonce": "clearance-nonce-vector-0001",
+  "cleanPublicStatement": {
+    "protocol": "conflictzero/v1",
+    "firmId": "firm-vector-001",
+    "registryId": "registry-vector-001",
+    "registryVersion": "v1-5424c3ea3852a57f",
+    "registryCommitment": "5424c3ea3852a57f01127fa9492206a37d73eefff80212e3e6f7a1b8654a68c9",
+    "engagementId": "ENG-VECTOR-CLEAN-001",
+    "engagementHash": "55280f134eb7b083abc21e6a13b45e5259f4f3c771d5ed55a634219395d51caf",
+    "checkNonce": "clearance-nonce-vector-0001",
+    "publicStatementHash": "1d91b7eae6f5f24c79e0a4f7c84ebb09c5b2bf1789ffc346de8b2503bf44de31"
+  }
+}

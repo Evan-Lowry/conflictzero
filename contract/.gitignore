@@ -1,0 +1,4 @@
+# Prover keys are reproducible and add roughly 28 MB. Keep generated bindings,
+# verifier keys, compiler metadata, and circuit IR so clean clones can build and
+# inspect the exact compiled interface used by the browser adapter.
+src/managed/**/keys/*.prover

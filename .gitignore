@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Compact proving keys are reproducible and large; keep source, verifier data,
+# generated bindings, and circuit IR in version control instead.
+contract/src/managed/**/keys/*.prover

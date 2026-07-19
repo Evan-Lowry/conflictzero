@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f2eb" />
+    <meta name="description" content="ConflictZero proves a conflict check passed without exposing the relationships behind it." />
+    <title>ConflictZero — Private conflict clearance</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('error', function (event) {
+        var root = document.getElementById('root')
+        if (root && !root.hasChildNodes()) {
+          root.innerHTML = '<main style="max-width:48rem;margin:10vh auto;padding:2rem;font:16px system-ui;color:#2d2924"><h1>ConflictZero could not start</h1><p id="startup-error"></p></main>'
+          document.getElementById('startup-error').textContent = event.message || 'Unknown startup error'
+        }
+      })
+      window.addEventListener('unhandledrejection', function (event) {
+        var root = document.getElementById('root')
+        if (root && !root.hasChildNodes()) {
+          root.innerHTML = '<main style="max-width:48rem;margin:10vh auto;padding:2rem;font:16px system-ui;color:#2d2924"><h1>ConflictZero could not start</h1><p id="startup-error"></p></main>'
+          document.getElementById('startup-error').textContent = String(event.reason || 'Unknown startup error')
+        }
+      })
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

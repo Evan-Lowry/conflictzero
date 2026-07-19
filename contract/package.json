@@ -1,0 +1,11 @@
+{
+  "name": "@conflictzero/contract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compact": "compact compile src/conflict-zero.compact src/managed/conflict-zero",
+    "format": "compact format src/conflict-zero.compact",
+    "test:model": "node --test test/protocol-model.test.mjs"
+  }
+}

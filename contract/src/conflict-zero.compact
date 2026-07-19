@@ -1,0 +1,286 @@
+pragma language_version >= 0.22 && <= 0.23;
+
+import CompactStandardLibrary;
+
+// ConflictZero deliberately uses bounded vectors. Variable-length private sets cannot
+// be iterated in a Compact circuit; increasing either bound changes the circuit.
+
+export struct EntitySlot {
+  active: Boolean;
+  fingerprint: Bytes<32>;
+}
+
+// The external digests bind the proof to the browser's canonical wire records.
+// Compact treats them as opaque metadata: it does not reimplement browser JSON/SHA-256.
+struct RegistrySnapshot {
+  externalRegistryCommitment: Bytes<32>;
+  firmId: Bytes<32>;
+  instanceNonce: Bytes<32>;
+  version: Uint<32>;
+  slots: Vector<8, EntitySlot>;
+}
+
+struct EngagementSnapshot {
+  engagementId: Bytes<32>;
+  externalEngagementHash: Bytes<32>;
+  firmId: Bytes<32>;
+  instanceNonce: Bytes<32>;
+  registryVersion: Uint<32>;
+  registryCommitment: Bytes<32>;
+  externalRegistryCommitment: Bytes<32>;
+  checkNonce: Bytes<32>;
+  parties: Vector<4, EntitySlot>;
+}
+
+struct RegistryOpening {
+  snapshot: RegistrySnapshot;
+  randomness: Bytes<32>;
+}
+
+struct ClearanceOpening {
+  registry: RegistrySnapshot;
+  registryRandomness: Bytes<32>;
+  engagement: EngagementSnapshot;
+  engagementRandomness: Bytes<32>;
+}
+
+export struct ClearanceReceipt {
+  registryVersion: Uint<32>;
+  registryCommitment: Bytes<32>;
+  engagementHash: Bytes<32>;
+  proposalCommitment: Bytes<32>;
+  checkNonce: Bytes<32>;
+}
+
+witness getAdminSecret(): Bytes<32>;
+
+witness getRegistryOpening(): RegistryOpening;
+
+witness getClearanceOpening(): ClearanceOpening;
+
+export sealed ledger firmId: Bytes<32>;
+
+export sealed ledger instanceNonce: Bytes<32>;
+
+export sealed ledger adminPublicKey: Bytes<32>;
+
+export ledger registryVersion: Uint<32>;
+
+export ledger registryCommitment: Bytes<32>;
+
+export ledger externalRegistryCommitment: Bytes<32>;
+
+export ledger clearanceReceipts: Map<Bytes<32>, ClearanceReceipt>;
+
+export ledger consumedProposalCommitments: Set<Bytes<32>>;
+
+export ledger consumedCheckNonces: Set<Bytes<32>>;
+
+constructor(initialFirmId: Bytes<32>,
+            deploymentNonce: Bytes<32>,
+            initialRegistryCommitment: Bytes<32>,
+            initialExternalRegistryCommitment: Bytes<32>
+            ) {
+  firmId = disclose(initialFirmId);
+  instanceNonce = disclose(deploymentNonce);
+  adminPublicKey = disclose(deriveAdminPublicKey(getAdminSecret()));
+
+  const opening = getRegistryOpening();
+  assertCanonicalRegistry(opening.snapshot);
+  assert(disclose(opening.snapshot.firmId) == firmId,
+         "ConflictZero: initial registry firm mismatch"
+         );
+  assert(disclose(opening.snapshot.instanceNonce) == instanceNonce,
+         "ConflictZero: initial registry deployment mismatch"
+         );
+  assert(disclose(opening.snapshot.version) == 1,
+         "ConflictZero: initial registry version must be one"
+         );
+  assert(disclose(opening.snapshot.externalRegistryCommitment) ==
+         disclose(initialExternalRegistryCommitment),
+         "ConflictZero: initial external registry digest mismatch"
+         );
+  assert(commitRegistry(opening.snapshot, opening.randomness) == disclose(initialRegistryCommitment),
+         "ConflictZero: initial registry commitment does not open"
+         );
+
+  registryVersion = 1;
+  registryCommitment = disclose(initialRegistryCommitment);
+  externalRegistryCommitment = disclose(initialExternalRegistryCommitment);
+}
+
+export pure circuit deriveAdminPublicKey(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<[Bytes<21>, Bytes<32>]>(["conflictzero:admin:v1", secret]);
+}
+
+// Canonical private entity fingerprint. The TypeScript integration MUST call this
+// generated pure circuit for both registry and engagement identifiers.
+export pure circuit entityFingerprint(entityId: Bytes<64>): Bytes<32> {
+  return persistentHash<[Bytes<22>, Bytes<64>]>(["conflictzero:entity:v1", entityId]);
+}
+
+export pure circuit commitRegistry(snapshot: RegistrySnapshot, randomness: Bytes<32>): Bytes<32> {
+  return persistentCommit<[Bytes<24>, RegistrySnapshot]>(
+           ["conflictzero:registry:v1", snapshot],
+           randomness
+           );
+}
+
+export pure circuit commitEngagement(snapshot: EngagementSnapshot, randomness: Bytes<32>): Bytes<32> {
+  return persistentCommit<[Bytes<26>, EngagementSnapshot]>(
+           ["conflictzero:engagement:v1", snapshot],
+           randomness
+           );
+}
+
+circuit assertAdmin(): [] {
+  assert(disclose(deriveAdminPublicKey(getAdminSecret())) == adminPublicKey,
+         "ConflictZero: admin authorization failed"
+         );
+}
+
+circuit assertCanonicalRegistry(snapshot: RegistrySnapshot): [] {
+  assert(disclose(snapshot.slots[0].active), "ConflictZero: registry cannot be empty");
+  for (const slot of snapshot.slots) {
+    assert(disclose(slot.active || slot.fingerprint == default<Bytes<32>>),
+           "ConflictZero: inactive registry slot must be zero"
+           );
+    assert(disclose(!slot.active || slot.fingerprint != default<Bytes<32>>),
+           "ConflictZero: active registry slot cannot be zero"
+           );
+  }
+}
+
+circuit assertCanonicalEngagement(snapshot: EngagementSnapshot): [] {
+  assert(disclose(snapshot.parties[0].active), "ConflictZero: engagement cannot be empty");
+  for (const slot of snapshot.parties) {
+    assert(disclose(slot.active || slot.fingerprint == default<Bytes<32>>),
+           "ConflictZero: inactive engagement slot must be zero"
+           );
+    assert(disclose(!slot.active || slot.fingerprint != default<Bytes<32>>),
+           "ConflictZero: active engagement slot cannot be zero"
+           );
+  }
+}
+
+// Rotating the registry always advances the public version exactly once. The
+// private opening is verified here, so an admin cannot accidentally install a
+// commitment that can never be opened for this firm/deployment/version.
+export circuit updateRegistry(
+                 newRegistryCommitment: Bytes<32>,
+                 newExternalRegistryCommitment: Bytes<32>
+                 ): [] {
+  assertAdmin();
+  assert(registryVersion < 4294967295, "ConflictZero: registry version exhausted");
+
+  const opening = getRegistryOpening();
+  const nextVersion = (registryVersion + 1) as Uint<32>;
+  assertCanonicalRegistry(opening.snapshot);
+  assert(disclose(opening.snapshot.firmId) == firmId, "ConflictZero: wrong firm");
+  assert(disclose(opening.snapshot.instanceNonce) == instanceNonce,
+         "ConflictZero: wrong deployment"
+         );
+  assert(disclose(opening.snapshot.version) == nextVersion, "ConflictZero: wrong registry version");
+  assert(disclose(opening.snapshot.externalRegistryCommitment) ==
+         disclose(newExternalRegistryCommitment),
+         "ConflictZero: external registry digest mismatch"
+         );
+  assert(commitRegistry(opening.snapshot, opening.randomness) == disclose(newRegistryCommitment),
+         "ConflictZero: invalid registry opening"
+         );
+
+  registryVersion = nextVersion;
+  registryCommitment = disclose(newRegistryCommitment);
+  externalRegistryCommitment = disclose(newExternalRegistryCommitment);
+}
+
+// Proves that every active engagement fingerprint differs from every active
+// registry fingerprint, while publishing only the receipt fields below.
+export circuit proveClear(
+                 engagementId: Bytes<32>,
+                 engagementHash: Bytes<32>,
+                 proposalCommitment: Bytes<32>,
+                 checkNonce: Bytes<32>,
+                 expectedRegistryVersion: Uint<32>
+                 ): [] {
+  const publicEngagementId = disclose(engagementId);
+  const publicEngagementHash = disclose(engagementHash);
+  const publicProposalCommitment = disclose(proposalCommitment);
+  const publicCheckNonce = disclose(checkNonce);
+  const publicExpectedVersion = disclose(expectedRegistryVersion);
+
+  assert(publicExpectedVersion == registryVersion, "ConflictZero: stale registry version");
+  assert(!clearanceReceipts.member(publicEngagementId),
+         "ConflictZero: engagement already finalized"
+         );
+  assert(!consumedProposalCommitments.member(publicProposalCommitment),
+         "ConflictZero: proposal replay"
+         );
+  assert(!consumedCheckNonces.member(publicCheckNonce), "ConflictZero: check nonce replay");
+
+  const opening = getClearanceOpening();
+  assertCanonicalRegistry(opening.registry);
+  assertCanonicalEngagement(opening.engagement);
+
+  assert(disclose(opening.registry.firmId) == firmId, "ConflictZero: registry firm mismatch");
+  assert(disclose(opening.registry.instanceNonce) == instanceNonce,
+         "ConflictZero: registry deployment mismatch"
+         );
+  assert(disclose(opening.registry.version) == registryVersion,
+         "ConflictZero: stale private registry"
+         );
+  assert(disclose(opening.registry.externalRegistryCommitment) == externalRegistryCommitment,
+         "ConflictZero: external registry digest changed"
+         );
+  assert(commitRegistry(opening.registry, opening.registryRandomness) == registryCommitment,
+         "ConflictZero: registry commitment does not open"
+         );
+
+  assert(disclose(opening.engagement.firmId) == firmId, "ConflictZero: engagement firm mismatch");
+  assert(disclose(opening.engagement.instanceNonce) == instanceNonce,
+         "ConflictZero: engagement deployment mismatch"
+         );
+  assert(disclose(opening.engagement.engagementId) == publicEngagementId,
+         "ConflictZero: engagement id mismatch"
+         );
+  assert(disclose(opening.engagement.registryVersion) == registryVersion,
+         "ConflictZero: proposal registry version mismatch"
+         );
+  assert(disclose(opening.engagement.registryCommitment) == registryCommitment,
+         "ConflictZero: proposal registry commitment mismatch"
+         );
+  assert(disclose(opening.engagement.externalRegistryCommitment) == externalRegistryCommitment,
+         "ConflictZero: proposal external registry digest mismatch"
+         );
+  assert(disclose(opening.engagement.checkNonce) == publicCheckNonce,
+         "ConflictZero: proposal check nonce mismatch"
+         );
+  assert(disclose(opening.engagement.externalEngagementHash) == publicEngagementHash,
+         "ConflictZero: engagement hash mismatch"
+         );
+  assert(commitEngagement(opening.engagement, opening.engagementRandomness) ==
+         publicProposalCommitment,
+         "ConflictZero: proposal commitment does not open"
+         );
+
+  for (const registrySlot of opening.registry.slots) {
+    for (const engagementSlot of opening.engagement.parties) {
+      assert(disclose(!registrySlot.active ||
+                      !engagementSlot.active ||
+                      registrySlot.fingerprint != engagementSlot.fingerprint),
+             "ConflictZero: private conflict detected"
+             );
+    }
+  }
+
+  clearanceReceipts.insert(
+    publicEngagementId,
+    ClearanceReceipt { registryVersion: registryVersion,
+                       registryCommitment: registryCommitment,
+                       engagementHash: publicEngagementHash,
+                       proposalCommitment: publicProposalCommitment,
+                       checkNonce: publicCheckNonce }
+    );
+  consumedProposalCommitments.insert(publicProposalCommitment);
+  consumedCheckNonces.insert(publicCheckNonce);
+}

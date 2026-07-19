@@ -1,0 +1,712 @@
+{
+  "compiler-version": "0.31.0",
+  "language-version": "0.23.0",
+  "runtime-version": "0.16.0",
+  "circuits": [
+    {
+      "name": "deriveAdminPublicKey",
+      "pure": true,
+      "proof": false,
+      "arguments": [
+        {
+          "name": "secret",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "entityFingerprint",
+      "pure": true,
+      "proof": false,
+      "arguments": [
+        {
+          "name": "entityId",
+          "type": {
+            "type-name": "Bytes",
+            "length": 64
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "commitRegistry",
+      "pure": true,
+      "proof": false,
+      "arguments": [
+        {
+          "name": "snapshot",
+          "type": {
+            "type-name": "Struct",
+            "name": "RegistrySnapshot",
+            "elements": [
+              {
+                "name": "externalRegistryCommitment",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "firmId",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "instanceNonce",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "version",
+                "type": {
+                  "type-name": "Uint",
+                  "maxval": 4294967295
+                }
+              },
+              {
+                "name": "slots",
+                "type": {
+                  "type-name": "Vector",
+                  "length": 8,
+                  "type": {
+                    "type-name": "Struct",
+                    "name": "EntitySlot",
+                    "elements": [
+                      {
+                        "name": "active",
+                        "type": {
+                          "type-name": "Boolean"
+                        }
+                      },
+                      {
+                        "name": "fingerprint",
+                        "type": {
+                          "type-name": "Bytes",
+                          "length": 32
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "randomness",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "commitEngagement",
+      "pure": true,
+      "proof": false,
+      "arguments": [
+        {
+          "name": "snapshot",
+          "type": {
+            "type-name": "Struct",
+            "name": "EngagementSnapshot",
+            "elements": [
+              {
+                "name": "engagementId",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "externalEngagementHash",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "firmId",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "instanceNonce",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "registryVersion",
+                "type": {
+                  "type-name": "Uint",
+                  "maxval": 4294967295
+                }
+              },
+              {
+                "name": "registryCommitment",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "externalRegistryCommitment",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "checkNonce",
+                "type": {
+                  "type-name": "Bytes",
+                  "length": 32
+                }
+              },
+              {
+                "name": "parties",
+                "type": {
+                  "type-name": "Vector",
+                  "length": 4,
+                  "type": {
+                    "type-name": "Struct",
+                    "name": "EntitySlot",
+                    "elements": [
+                      {
+                        "name": "active",
+                        "type": {
+                          "type-name": "Boolean"
+                        }
+                      },
+                      {
+                        "name": "fingerprint",
+                        "type": {
+                          "type-name": "Bytes",
+                          "length": 32
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "randomness",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "updateRegistry",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "newRegistryCommitment",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "newExternalRegistryCommitment",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "proveClear",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "engagementId",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "engagementHash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "proposalCommitment",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "checkNonce",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
+          "name": "expectedRegistryVersion",
+          "type": {
+            "type-name": "Uint",
+            "maxval": 4294967295
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    }
+  ],
+  "witnesses": [
+    {
+      "name": "getAdminSecret",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "getRegistryOpening",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Struct",
+        "name": "RegistryOpening",
+        "elements": [
+          {
+            "name": "snapshot",
+            "type": {
+              "type-name": "Struct",
+              "name": "RegistrySnapshot",
+              "elements": [
+                {
+                  "name": "externalRegistryCommitment",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "firmId",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "instanceNonce",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "version",
+                  "type": {
+                    "type-name": "Uint",
+                    "maxval": 4294967295
+                  }
+                },
+                {
+                  "name": "slots",
+                  "type": {
+                    "type-name": "Vector",
+                    "length": 8,
+                    "type": {
+                      "type-name": "Struct",
+                      "name": "EntitySlot",
+                      "elements": [
+                        {
+                          "name": "active",
+                          "type": {
+                            "type-name": "Boolean"
+                          }
+                        },
+                        {
+                          "name": "fingerprint",
+                          "type": {
+                            "type-name": "Bytes",
+                            "length": 32
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "randomness",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "getClearanceOpening",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Struct",
+        "name": "ClearanceOpening",
+        "elements": [
+          {
+            "name": "registry",
+            "type": {
+              "type-name": "Struct",
+              "name": "RegistrySnapshot",
+              "elements": [
+                {
+                  "name": "externalRegistryCommitment",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "firmId",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "instanceNonce",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "version",
+                  "type": {
+                    "type-name": "Uint",
+                    "maxval": 4294967295
+                  }
+                },
+                {
+                  "name": "slots",
+                  "type": {
+                    "type-name": "Vector",
+                    "length": 8,
+                    "type": {
+                      "type-name": "Struct",
+                      "name": "EntitySlot",
+                      "elements": [
+                        {
+                          "name": "active",
+                          "type": {
+                            "type-name": "Boolean"
+                          }
+                        },
+                        {
+                          "name": "fingerprint",
+                          "type": {
+                            "type-name": "Bytes",
+                            "length": 32
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "registryRandomness",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          },
+          {
+            "name": "engagement",
+            "type": {
+              "type-name": "Struct",
+              "name": "EngagementSnapshot",
+              "elements": [
+                {
+                  "name": "engagementId",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "externalEngagementHash",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "firmId",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "instanceNonce",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "registryVersion",
+                  "type": {
+                    "type-name": "Uint",
+                    "maxval": 4294967295
+                  }
+                },
+                {
+                  "name": "registryCommitment",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "externalRegistryCommitment",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "checkNonce",
+                  "type": {
+                    "type-name": "Bytes",
+                    "length": 32
+                  }
+                },
+                {
+                  "name": "parties",
+                  "type": {
+                    "type-name": "Vector",
+                    "length": 4,
+                    "type": {
+                      "type-name": "Struct",
+                      "name": "EntitySlot",
+                      "elements": [
+                        {
+                          "name": "active",
+                          "type": {
+                            "type-name": "Boolean"
+                          }
+                        },
+                        {
+                          "name": "fingerprint",
+                          "type": {
+                            "type-name": "Bytes",
+                            "length": 32
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "engagementRandomness",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "contracts": [
+  ],
+  "ledger": [
+    {
+      "name": "firmId",
+      "index": 0,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "instanceNonce",
+      "index": 1,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "adminPublicKey",
+      "index": 2,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "registryVersion",
+      "index": 3,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Uint",
+        "maxval": 4294967295
+      }
+    },
+    {
+      "name": "registryCommitment",
+      "index": 4,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "externalRegistryCommitment",
+      "index": 5,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "clearanceReceipts",
+      "index": 6,
+      "exported": true,
+      "storage": "Map",
+      "key": {
+        "type-name": "Bytes",
+        "length": 32
+      },
+      "value": {
+        "type-name": "Struct",
+        "name": "ClearanceReceipt",
+        "elements": [
+          {
+            "name": "registryVersion",
+            "type": {
+              "type-name": "Uint",
+              "maxval": 4294967295
+            }
+          },
+          {
+            "name": "registryCommitment",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          },
+          {
+            "name": "engagementHash",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          },
+          {
+            "name": "proposalCommitment",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          },
+          {
+            "name": "checkNonce",
+            "type": {
+              "type-name": "Bytes",
+              "length": 32
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "consumedProposalCommitments",
+      "index": 7,
+      "exported": true,
+      "storage": "Set",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "consumedCheckNonces",
+      "index": 8,
+      "exported": true,
+      "storage": "Set",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    }
+  ]
+}
